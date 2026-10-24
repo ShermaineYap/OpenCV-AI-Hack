@@ -205,18 +205,22 @@ def figures(table, fc, perc, runs):
     _style(ax)
     ax = axes[1]
     act = [r for r in table if r["false_intervention_rate"] is not None]
-    y2 = np.arange(len(act))[::-1]
-    v2 = [100 * r["false_intervention_rate"] for r in act]
-    ax.barh(y2, v2, color=[C["s1"] if r["policy"].startswith("boilguard") else C["grey"] for r in act], height=0.6)
+    if not act:
+        ax.axis("off")
+        act = None
+    y2 = np.arange(len(act or []))[::-1]
+    v2 = [100 * r["false_intervention_rate"] for r in act or []]
+    if act: ax.barh(y2, v2, color=[C["s1"] if r["policy"].startswith("boilguard") else C["grey"] for r in act], height=0.6)
     for yi, v in zip(y2, v2):
         ax.text(v + 1.5, yi, f"{v:.0f}%", va="center", fontsize=9, color=C["ink"])
-    ax.set_yticks(y2, [r["label"] for r in act], fontsize=9, color=C["ink"])
-    ax.set_xlim(0, 110)
-    ax.set_xlabel("pots where heat was cut unnecessarily (%)")
-    ax.set_title(f"Unneeded heat cuts, clearly-safe pots (n={act[0]['n_safe']})", fontsize=11, loc="left")
-    ax.xaxis.grid(True, color=C["grid"], linewidth=0.8)
-    ax.set_axisbelow(True)
-    _style(ax)
+    if act:
+        ax.set_yticks(y2, [r["label"] for r in act], fontsize=9, color=C["ink"])
+        ax.set_xlim(0, 110)
+        ax.set_xlabel("pots where heat was cut unnecessarily (%)")
+        ax.set_title(f"Unneeded heat cuts, clearly-safe pots (n={act[0]['n_safe']})", fontsize=11, loc="left")
+        ax.xaxis.grid(True, color=C["grid"], linewidth=0.8)
+        ax.set_axisbelow(True)
+        _style(ax)
     fig.tight_layout()
     fig.savefig(os.path.join(RES, "fig_outcomes.png"), dpi=150)
     plt.close(fig)

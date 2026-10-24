@@ -63,8 +63,21 @@ def run_sim(params: SimParams, opts: RunOptions, agent_cfg: AgentConfig | None =
     else:
         human = SimHuman(sim, opts.human == "present", float(np.clip(rng.lognormal(np.log(6.0), 0.5), 2, 25)))
     if opts.policy == "none":
+        writer = VideoWriter(opts.video_path, params.fps, (params.width + 230, params.height)) if render_all else None
         while sim.s.t < params.duration:
-            sim.step(render=False)
+            frame = sim.step(render=render_all)
+            if writer is not None:
+                panel = np.full((params.height, 230, 3), 24, np.uint8)
+                cv2.putText(panel, "No BoilGuard", (12, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200, 200, 200), 2, cv2.LINE_AA)
+                tr = sim.truth()
+                cv2.putText(panel, f"t = {tr['t']:.1f} s", (12, 62), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (235, 235, 235), 1, cv2.LINE_AA)
+                cv2.putText(panel, f"true freeboard {tr['freeboard_mm']:.1f} mm", (12, 88), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                            (235, 235, 235), 1, cv2.LINE_AA)
+                if tr["overflowed"]:
+                    cv2.putText(panel, "BOILED OVER", (12, 130), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (60, 60, 240), 2, cv2.LINE_AA)
+                writer.write(np.hstack([frame, panel]))
+        if writer:
+            writer.close()
         return {"summary": _summary_common([], [], sim.s.overflow_time, natural_t,
                                            {"policy": "none", "human_present": human.present}),
                 "timeline": [], "trace": []}
