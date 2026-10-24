@@ -79,8 +79,10 @@ def run_sim(params: SimParams, opts: RunOptions, agent_cfg: AgentConfig | None =
         if writer:
             writer.close()
         return {"summary": _summary_common([], [], sim.s.overflow_time, natural_t,
-                                           {"policy": "none", "human_present": human.present}),
-                "timeline": [], "trace": []}
+                                           {"policy": "none", "human_present": human.present,
+                                            "heater": params.heater, "liquid": params.liquid,
+                                            "will_overflow": params.will_overflow_uncontrolled}),
+                "timeline": [], "trace": [], "params": params.to_dict()}
 
     cfg = agent_cfg or AgentConfig(heater=params.heater)
     if opts.policy in ("notify_only", "ask_first"):

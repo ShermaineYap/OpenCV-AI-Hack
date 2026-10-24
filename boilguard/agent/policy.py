@@ -37,7 +37,8 @@ class AgentConfig:
     heater: str = "ceramic"
     veto_s: float = 3.0
     # operating point chosen by offline replay on a separate dev set (eval/tune.py)
-    alert_p20: float = 0.5
+    heads_up_p20: float = 0.5          # quiet "foam rising, watching" notification
+    alert_p20: float = 0.7             # boil-over warning (tuned on dev for few false warnings)
     alert_fill: float = 0.25
     act_p: float = 0.7
     act_fill: float = 0.4
@@ -57,6 +58,7 @@ class AgentConfig:
 class AgentState:
     state: str = "MONITOR"
     alerted: bool = False
+    heads_up: bool = False
     fan_on: bool = False
     heat: float = 1.0
     low_vis_since: float | None = None
@@ -93,7 +95,8 @@ class BoilGuardAgent:
     def _notify(self, t, severity, kind, ev):
         event = {"kind": kind, **ev}
         text, src = self.nar.message(event)
-        self.human.alert(t, text)
+        if severity != "info":             # info = silent heads-up, no call to action
+            self.human.alert(t, text)
         self.s.last_notify = t
         return self._tool("notify", severity=severity, message=text, evidence=ev), {"message": text, "by": src}
 
@@ -229,7 +232,11 @@ class BoilGuardAgent:
 
         human_active = t < s.human_until
 
-        # --- alert
+        # --- heads-up (silent) then warning
+        if not s.heads_up and not s.alerted and f.p_20s >= cfg.heads_up_p20 and f.fill >= cfg.alert_fill:
+            s.heads_up = True
+            n, meta = self._notify(t, "info", "heads_up", ev)
+            self._log(t, "heads_up", [n], f"foam rising; P(overflow<20s)={f.p_20s:.2f}", m, f, {"msg": meta})
         if not s.alerted and f.p_20s >= cfg.alert_p20 and f.fill >= cfg.alert_fill:
             s.alerted = True
             s.state = "ALERT"

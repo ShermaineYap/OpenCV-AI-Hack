@@ -68,7 +68,14 @@ def policy_table(runs):
         ni = float(np.mean([intervened(r) for r in nm])) if (nm and p in ACTUATING) else None
         leads = [r["summary"]["natural_overflow_t"] - r["summary"]["first_alert_t"] for r in ov
                  if r["summary"].get("first_alert_t") is not None and r["summary"].get("natural_overflow_t")]
-        rows.append({"policy": p, "label": LABELS[p], "n_overflow_prone": len(ov), "n_safe": len(sf),
+        hu = []
+        for r in ov:
+            nat = r["summary"].get("natural_overflow_t")
+            t_hu = next((e["t"] for e in r["trace"] if e.get("decision") == "heads_up"), None)
+            if nat and t_hu is not None:
+                hu.append(nat - t_hu)
+        rows.append({"policy": p, "label": LABELS[p],
+                     "median_heads_up_lead_s": float(np.median(hu)) if hu else None, "n_overflow_prone": len(ov), "n_safe": len(sf),
                      "n_near_miss": len(nm), "overflow_rate": over_rate,
                      "false_intervention_rate": fi, "false_alert_rate": fa, "near_miss_intervention_rate": ni,
                      "median_lead_s": float(np.median(leads)) if leads else None,
@@ -340,11 +347,17 @@ def main():
                             s.get("first_alert_t"), s.get("first_action_t"), s.get("human_present"),
                             r["params"]["heater"], r["params"]["liquid"], round(r["params"]["steam_max"], 2)])
     fmt = lambda v, pct=True: "—" if v is None else (f"{100 * v:.0f}%" if pct else f"{v:.1f}")
-    lines = ["| Policy | Boil-overs (overflow-prone) | Unneeded heat cuts (clearly safe) | Alerts on clearly-safe pots | Median warning before spill (s) |",
-             "|---|---|---|---|---|"]
+    lines = ["| Policy | Boil-overs (overflow-prone pots) | Unneeded heat cuts (clearly-safe pots) | Heat cuts on near-misses | Warnings on clearly-safe pots | Median warning before spill (s) |",
+             "|---|---|---|---|---|---|"]
     for r in table:
-        lines.append(f"| {r['label']} | {fmt(r['overflow_rate'])} | {fmt(r['false_intervention_rate'])} | "
+        ci = r.get("overflow_ci95")
+        ov = fmt(r['overflow_rate']) + (f" (95% CI {100*ci[0]:.0f}-{100*ci[1]:.0f}%)" if ci else "")
+        lines.append(f"| {r['label']} | {ov} | {fmt(r['false_intervention_rate'])} | {fmt(r['near_miss_intervention_rate'])} | "
                      f"{fmt(r['false_alert_rate'])} | {fmt(r['median_lead_s'], False)} |")
+    n0 = table[0]
+    lines.append("")
+    lines.append(f"Test set: {n0['n_overflow_prone']} overflow-prone, {n0['n_safe']} clearly-safe and {n0['n_near_miss']} "
+                 "near-miss scenes (foam peaks at 70-100% of the rim). Heat cuts on near-misses are arguably correct caution.")
     with open(os.path.join(RES, "eval_table.md"), "w") as f:
         f.write("\n".join(lines) + "\n")
     print("\n".join(lines))

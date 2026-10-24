@@ -39,6 +39,8 @@ def template_message(event: dict) -> str:
         return "The pot boiled over. Burner switched OFF. Please wipe the hob before restarting."
     if kind == "confirm_rim":
         return "I could not find the pot rim confidently. Please confirm the pot outline in the app."
+    if kind == "heads_up":
+        return f"Foam is starting to rise ({fb_txt}). I'm watching the pot closely."
     if kind == "boiling":
         return "Boiling started. Watching the pot closely."
     return event.get("text", "BoilGuard update.")
