@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+results/raw/
+runs/
+*.mp4
+!docs/media/*.mp4
+.aws-sam/
+samconfig.toml
+.env

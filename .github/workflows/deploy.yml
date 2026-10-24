@@ -1,0 +1,56 @@
+name: Deploy to AWS
+# Manual, one-click deployment. Needs repo secrets AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
+on:
+  workflow_dispatch:
+    inputs:
+      region:
+        description: AWS region (Bedrock Nova Lite profile 'us.' works in us-east-1 / us-east-2 / us-west-2)
+        default: us-east-1
+      alert_email:
+        description: Optional e-mail for SNS alerts (confirm the subscription mail)
+        default: ""
+      stack_name:
+        default: boilguard
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - uses: aws-actions/setup-sam@v2
+        with: { use-installer: true }
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.region }}
+      - name: Unit tests
+        run: pip install -r requirements-dev.txt && pytest -q
+      - name: Build container image
+        run: sam build --template-file aws/template.yaml
+      - name: Deploy stack
+        run: |
+          OVERRIDES="EnableBedrock=1"
+          if [ -n "${{ inputs.alert_email }}" ]; then OVERRIDES="$OVERRIDES AlertEmail=${{ inputs.alert_email }}"; fi
+          sam deploy --stack-name ${{ inputs.stack_name }} --resolve-s3 --resolve-image-repos \
+            --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset \
+            --parameter-overrides $OVERRIDES
+      - name: Smoke test the live endpoint
+        run: |
+          URL=$(aws cloudformation describe-stacks --stack-name ${{ inputs.stack_name }} \
+                --query "Stacks[0].Outputs[?OutputKey=='AppUrl'].OutputValue" --output text)
+          echo "App URL: $URL"
+          curl -sf "${URL}health" | tee health.json
+          curl -sf -X POST "${URL}api/simulate" -H 'content-type: application/json' \
+               -d '{"seed": 7, "liquid": "milk", "heater": "ceramic", "cook": "absent"}' \
+               | python -c "import sys,json; d=json.load(sys.stdin); print(json.dumps(d['summary'], indent=1)[:1500])"
+          {
+            echo "## BoilGuard deployed"
+            echo ""
+            echo "**App URL:** $URL"
+            echo ""
+            echo '```json'; cat health.json; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

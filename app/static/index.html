@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BoilGuard</title>
+<meta name="description" content="BoilGuard predicts a pot boiling over from a range-hood camera and turns the heat down before it happens. OpenCV 5 + AWS.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#f7f5f1; --panel:#ffffff; --ink:#1d1b18; --muted:#6b655c; --line:#e6e1d8;
+  --flame:#e2562b; --flame-soft:#fde9e1; --safe:#1f8a70; --safe-soft:#e1f3ee; --warn:#c98a0b; --warn-soft:#fbf1dc;
+  --steel:#3b4a5a; --series1:#2a78d6; --chip:#f0ece5; --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141311; --panel:#1d1c19; --ink:#f1ede6; --muted:#a39c90; --line:#2f2c27;
+    --flame:#ff7a4d; --flame-soft:#3a2219; --safe:#45c19f; --safe-soft:#15302a; --warn:#e8b13e; --warn-soft:#332811;
+    --steel:#9fb2c6; --series1:#3987e5; --chip:#2a2824; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141311; --panel:#1d1c19; --ink:#f1ede6; --muted:#a39c90; --line:#2f2c27;
+  --flame:#ff7a4d; --flame-soft:#3a2219; --safe:#45c19f; --safe-soft:#15302a; --warn:#e8b13e; --warn-soft:#332811;
+  --steel:#9fb2c6; --series1:#3987e5; --chip:#2a2824; --shadow:none;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 Inter,system-ui,sans-serif}
+a{color:var(--flame)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+header{padding:28px 0 8px}
+.brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{width:40px;height:40px;border-radius:10px;background:var(--flame);display:grid;place-items:center;color:#fff}
+h1{font-size:28px;margin:0;letter-spacing:-.02em}
+.tag{color:var(--muted);margin:6px 0 0;max-width:720px}
+.pill{font:500 12px JetBrains Mono,monospace;background:var(--chip);padding:4px 10px;border-radius:99px;color:var(--muted)}
+nav{display:flex;gap:4px;margin:22px 0 18px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{background:none;border:0;padding:10px 14px;font:600 14px Inter;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--ink);border-color:var(--flame)}
+.grid{display:grid;grid-template-columns:320px 1fr;gap:18px}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.card h2{font-size:15px;margin:0 0 12px}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+select,input[type=number],input[type=file]{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font:14px Inter}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg label{flex:1;margin:0;text-align:center;padding:8px 4px;font-weight:500;cursor:pointer;font-size:13px}
+.seg input{position:absolute;opacity:0}
+.seg input:checked+span{color:var(--flame);font-weight:700}
+.seg label:has(input:checked){background:var(--flame-soft)}
+.seg input:focus-visible+span{outline:2px solid var(--flame);outline-offset:2px}
+.check{display:flex;align-items:center;gap:8px;font-weight:500;margin-top:10px}
+.btn{margin-top:16px;width:100%;padding:12px;border:0;border-radius:10px;background:var(--flame);color:#fff;font:700 15px Inter;cursor:pointer}
+.btn:disabled{opacity:.6;cursor:wait}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+video{width:100%;border-radius:10px;background:#000;display:block}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+@media (max-width:600px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi .v{font:700 20px Inter;letter-spacing:-.01em}
+.kpi .l{font-size:12px;color:var(--muted)}
+.good{color:var(--safe)} .bad{color:var(--flame)} .warn{color:var(--warn)}
+.trace{list-style:none;margin:0;padding:0;max-height:420px;overflow:auto}
+.trace li{display:grid;grid-template-columns:58px 1fr;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.trace .t{font:500 12px JetBrains Mono,monospace;color:var(--muted);padding-top:2px}
+.trace .d{font-weight:600}
+.trace .why{font-size:13px;color:var(--muted)}
+.chip{display:inline-block;font:500 11px JetBrains Mono,monospace;background:var(--chip);border-radius:6px;padding:2px 6px;margin:4px 4px 0 0}
+.chip.act{background:var(--flame-soft);color:var(--flame)}
+.chip.msg{background:var(--safe-soft);color:var(--safe)}
+.report{background:var(--safe-soft);border-radius:10px;padding:12px 14px;margin-top:12px}
+.badge{font:600 11px Inter;background:var(--panel);border:1px solid var(--line);padding:2px 8px;border-radius:99px;margin-left:6px}
+.status{font-size:13px;color:var(--muted);min-height:20px;margin-top:8px}
+.empty{display:grid;place-items:center;min-height:300px;color:var(--muted);text-align:center;border:1px dashed var(--line);border-radius:12px;padding:20px}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+@media (max-width:900px){.cols2{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--muted);font-weight:600}
+td.num{font:500 13px JetBrains Mono,monospace}
+.figs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media (max-width:900px){.figs{grid-template-columns:1fr}}
+.figs img{width:100%;border-radius:10px;border:1px solid var(--line);background:#fff}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s;padding:10px 0 10px 42px;position:relative;border-bottom:1px solid var(--line)}
+.steps li:before{content:counter(s);position:absolute;left:0;top:10px;width:28px;height:28px;border-radius:8px;background:var(--flame-soft);color:var(--flame);display:grid;place-items:center;font-weight:700}
+code{font:13px JetBrains Mono,monospace;background:var(--chip);padding:1px 5px;border-radius:5px}
+footer{color:var(--muted);font-size:13px;padding:30px 0 40px}
+[hidden]{display:none!important}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--flame);border-radius:50%;animation:spin 1s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.spinner{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 11h16v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/><path d="M2 11h20"/><path d="M9 7c0-1.5 1-2 1-3.5M14 7c0-1.5 1-2 1-3.5"/></svg>
+    </div>
+    <h1>BoilGuard</h1>
+    <span class="pill" id="health">checking service…</span>
+  </div>
+  <p class="tag">A range-hood camera that sees a pot about to boil over, predicts <em>when</em> with a physics-informed model, and turns the heat down before it spills. Built on OpenCV 5 and AWS.</p>
+</header>
+
+<nav role="tablist" aria-label="Sections">
+  <button role="tab" aria-selected="true" aria-controls="p-sim" id="t-sim">Run a scenario</button>
+  <button role="tab" aria-selected="false" aria-controls="p-clip" id="t-clip">Analyse your clip</button>
+  <button role="tab" aria-selected="false" aria-controls="p-eval" id="t-eval">Evaluation</button>
+  <button role="tab" aria-selected="false" aria-controls="p-how" id="t-how">How it works</button>
+</nav>
+
+<section id="p-sim" role="tabpanel" aria-labelledby="t-sim">
+  <div class="grid">
+    <form class="card" id="simform">
+      <h2>Kitchen scenario</h2>
+      <label for="liquid">What's in the pot</label>
+      <select id="liquid"><option value="milk">Milk</option><option value="pasta_water">Pasta water</option><option value="coconut_curry">Coconut curry</option><option value="tomato_soup">Tomato soup</option></select>
+      <label for="heater">Hob type</label>
+      <select id="heater"><option value="ceramic">Ceramic (≈6 s heat lag)</option><option value="induction">Induction (≈2 s)</option><option value="coil">Electric coil (≈8 s)</option></select>
+      <label for="steam">Steam</label>
+      <select id="steam"><option value="0.15">Light</option><option value="0.4" selected>Moderate</option><option value="0.7">Heavy</option></select>
+      <label>Will this pot boil over if nobody acts?</label>
+      <div class="seg" role="radiogroup" aria-label="Scenario outcome">
+        <label><input type="radio" name="ovf" value="1" checked><span>Yes</span></label>
+        <label><input type="radio" name="ovf" value="0"><span>No (simmer)</span></label>
+      </div>
+      <label>The cook is</label>
+      <div class="seg" role="radiogroup" aria-label="Cook presence">
+        <label><input type="radio" name="cook" value="absent" checked><span>Away</span></label>
+        <label><input type="radio" name="cook" value="present"><span>Nearby</span></label>
+      </div>
+      <label for="mode">How much may BoilGuard do?</label>
+      <select id="mode"><option value="auto_veto">Act, with a 3 s cancel window</option><option value="ask_first">Ask me first</option><option value="notify_only">Only notify me</option></select>
+      <div class="row">
+        <div><label for="seed">Seed</label><input type="number" id="seed" min="0" placeholder="random"></div>
+      </div>
+      <label class="check"><input type="checkbox" id="mirror"> Mirror commands to AWS IoT Core</label>
+      <label class="check"><input type="checkbox" id="privacy"> Privacy mask outside the pot</label>
+      <button class="btn" id="runbtn" type="submit">Turn on the stove</button>
+      <div class="status" id="simstatus" role="status" aria-live="polite"></div>
+      <p class="hint">Runs a 60 s physically simulated boil (foam growth, heater lag, steam, hands, camera shake). The vision never sees the ground truth.</p>
+    </form>
+    <div>
+      <div class="card">
+        <div id="simempty" class="empty">Choose a scenario and press <strong>Turn on the stove</strong>.<br>You'll get the camera view annotated by OpenCV, the forecast and every agent decision.</div>
+        <div id="simout" hidden>
+          <video id="simvideo" controls playsinline muted></video>
+          <div class="kpis" id="kpis"></div>
+          <canvas id="chart" height="140" aria-label="Surface distance below the rim over time, measured and true" role="img"></canvas>
+          <canvas id="chart2" height="70" aria-label="Predicted probability of overflow within the hob heat lag" role="img" style="margin-top:8px"></canvas>
+        </div>
+      </div>
+      <div class="cols2" id="simdetails" hidden>
+        <div class="card"><h2>Agent decisions <span class="badge">perception → decision → action</span></h2><ul class="trace" id="trace"></ul></div>
+        <div class="card"><h2>Incident report <span class="badge" id="repby"></span></h2><div class="report" id="report"></div>
+          <h2 style="margin-top:18px">Scenario</h2><div id="params" class="hint"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p-clip" role="tabpanel" aria-labelledby="t-clip" hidden>
+  <div class="grid">
+    <form class="card" id="clipform">
+      <h2>Your own clip</h2>
+      <p class="hint">A top-down video of a pot (camera above the hob, whole rim in view, start before it boils). Max 40 MB, first 90 s analysed. Actions are logged, not executed.</p>
+      <label for="file">Video file</label><input type="file" id="file" accept="video/*" required>
+      <label for="camh">Camera height above the rim (mm)</label><input type="number" id="camh" value="450" min="100" max="2000">
+      <label for="cheater">Hob type</label>
+      <select id="cheater"><option value="ceramic">Ceramic</option><option value="induction">Induction</option><option value="coil">Electric coil</option><option value="gas">Gas</option></select>
+      <button class="btn" id="clipbtn" type="submit">Analyse</button>
+      <div class="status" id="clipstatus" role="status" aria-live="polite"></div>
+    </form>
+    <div class="card">
+      <div id="clipempty" class="empty">Upload a clip to see the rim detection, the foam front and the forecast.</div>
+      <div id="clipout" hidden><video id="clipvideo" controls playsinline muted></video><ul class="trace" id="cliptrace" style="margin-top:14px"></ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="p-eval" role="tabpanel" aria-labelledby="t-eval" hidden>
+  <div class="card"><h2>Held-out test set</h2><div id="evalbody" class="hint">Loading…</div></div>
+  <div class="figs" id="figs"></div>
+</section>
+
+<section id="p-how" role="tabpanel" aria-labelledby="t-how" hidden>
+  <div class="cols2" style="margin-top:0">
+    <div class="card"><h2>Vision pipeline (OpenCV 5)</h2>
+      <ol class="steps">
+        <li><b>Find the rim.</b> Median of the first frames, CLAHE, Canny, <code>findContours</code> + <code>fitEllipse</code>, scored by edge support. Refined to the inner edge of the bright lip by a per-angle sub-pixel fit.</li>
+        <li><b>Unwrap.</b> <code>remap</code> into an elliptical polar image, so a rising surface is a front moving outward.</li>
+        <li><b>Stabilise.</b> Rim-anchored <code>phaseCorrelate</code> with a Hanning window cancels hood vibration; hands crossing the rim are rejected.</li>
+        <li><b>Normalise light and steam.</b> Trimmed per-angle regression on the rim lip gives gain/offset; low gain = steam.</li>
+        <li><b>Find the foam front.</b> The inner wall is static background: a vectorised change-point search per angle, median over angles.</li>
+        <li><b>Depth.</b> Pinhole geometry: <code>d = H (r_rim / r_surface − 1)</code>.</li>
+        <li><b>Agitation.</b> Farneback optical flow flags boiling onset.</li>
+      </ol></div>
+    <div class="card"><h2>Prediction and action</h2>
+      <ol class="steps">
+        <li><b>Physics.</b> Foam grows exponentially then saturates. <code>cv2.KalmanFilter</code> tracks log-foam, growth rate and its change.</li>
+        <li><b>Uncertainty.</b> Monte-Carlo samples of the posterior give P(overflow within the hob's heat lag).</li>
+        <li><b>Act.</b> Alert, then lower heat via AWS IoT Core before the lag runs out (with cancel window / approval modes).</li>
+        <li><b>Verify.</b> Watch that foam growth reverses; if not, burner off + alarm.</li>
+        <li><b>See better.</b> Steam hides the rim → switch the hood fan on.</li>
+        <li><b>Explain.</b> Amazon Bedrock (Nova) writes the notification and incident report from the numbers only.</li>
+      </ol></div>
+  </div>
+</section>
+
+<footer>BoilGuard — OpenCV AI Competition 2026 entry. Simulated scenarios are synthetic; real-world accuracy must be validated on real stoves before relying on automatic heat control.</footer>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const fmt = (v, d = 1, u = "") => (v === null || v === undefined || !isFinite(v)) ? "—" : `${(+v).toFixed(d)}${u}`;
+
+// tabs
+document.querySelectorAll('nav [role=tab]').forEach(tab => tab.addEventListener('click', () => {
+  document.querySelectorAll('nav [role=tab]').forEach(t => t.setAttribute('aria-selected', t === tab));
+  document.querySelectorAll('[role=tabpanel]').forEach(p => p.hidden = p.id !== tab.getAttribute('aria-controls'));
+  if (tab.id === 't-eval') loadEval();
+}));
+
+fetch('/health').then(r => r.json()).then(h => {
+  $('#health').textContent = `OpenCV ${h.opencv} · ${h.region}${h.bedrock ? ' · Bedrock' : ''}${h.s3 ? ' · S3' : ''}`;
+  if (!h.iot) { $('#mirror').disabled = true; $('#mirror').parentElement.title = 'IoT mirroring not enabled on this deployment'; }
+}).catch(() => $('#health').textContent = 'offline');
+
+let chart, chart2;
+function actsPlugin(acts, color, labels) {
+  return { id: 'acts', afterDraw(ch) {
+    const { ctx, chartArea: a, scales: { x } } = ch;
+    ctx.save(); ctx.fillStyle = color; ctx.font = '11px Inter';
+    acts.forEach(e => { const px = x.getPixelForValue(e.t); if (px < a.left || px > a.right) return;
+      ctx.globalAlpha = .4; ctx.fillRect(px, a.top, 1.5, a.bottom - a.top); ctx.globalAlpha = 1;
+      if (labels) ctx.fillText(e.decision.replace(/_/g, ' '), px + 3, a.top + 12); });
+    ctx.restore(); } };
+}
+function drawChart(tl, trace) {
+  const css = getComputedStyle(document.documentElement);
+  const c = (n) => css.getPropertyValue(n).trim();
+  const acts = trace.filter(e => (e.tools || []).length);
+  const xs = { type: 'linear', min: tl.length ? tl[0].t : 0, max: tl.length ? tl[tl.length - 1].t : 60,
+    ticks: { color: c('--muted') }, grid: { color: c('--line') } };
+  const tip = { mode: 'index', intersect: false };
+  if (chart) chart.destroy();
+  if (chart2) chart2.destroy();
+  chart = new Chart($('#chart'), {
+    type: 'line',
+    data: { datasets: [
+      { label: 'Measured by BoilGuard', data: tl.map(r => ({ x: r.t, y: r.freeboard })), borderColor: c('--series1'), borderWidth: 2, pointRadius: 0 },
+      { label: 'True (simulator)', data: tl.map(r => ({ x: r.t, y: r.true_freeboard })), borderColor: c('--muted'), borderDash: [4, 4], borderWidth: 1.5, pointRadius: 0 },
+    ]},
+    options: { animation: false, interaction: tip, plugins: { title: { display: true, text: 'Surface distance below the rim (mm)', align: 'start', color: c('--ink') },
+        legend: { labels: { color: c('--ink'), boxWidth: 12 } } },
+      scales: { x: { ...xs, ticks: { display: false } }, y: { min: 0, ticks: { color: c('--muted') }, grid: { color: c('--line') } } } },
+    plugins: [actsPlugin(acts, c('--flame'), true)]
+  });
+  chart2 = new Chart($('#chart2'), {
+    type: 'line',
+    data: { datasets: [{ label: 'P(overflow within heat lag)', data: tl.map(r => ({ x: r.t, y: r.plag })), borderColor: c('--series1'), borderWidth: 2, pointRadius: 0, fill: false }] },
+    options: { animation: false, interaction: tip, plugins: { title: { display: true, text: 'Chance of spilling before a heat change could take effect', align: 'start', color: c('--ink') }, legend: { display: false } },
+      scales: { x: { ...xs, title: { display: true, text: 'time (s)', color: c('--muted') } }, y: { min: 0, max: 1, ticks: { color: c('--muted'), stepSize: 0.5 }, grid: { color: c('--line') } } } },
+    plugins: [actsPlugin(acts, c('--flame'), false)]
+  });
+}
+
+function renderTrace(el, trace) {
+  el.innerHTML = '';
+  if (!trace.length) { el.innerHTML = '<li><span></span><span class="why">No decisions — nothing risky seen.</span></li>'; return; }
+  trace.forEach(e => {
+    const li = document.createElement('li');
+    const tools = (e.tools || []).map(t => {
+      const a = t.args || {}; const arg = t.tool === 'set_heat' ? ` ${a.level}` : t.tool === 'hood_fan' ? ` ${a.on ? 'on' : 'off'}` : '';
+      return `<span class="chip ${t.tool === 'notify' ? 'msg' : 'act'}">${t.tool}${arg}</span>`; }).join('');
+    const f = e.forecast || {};
+    const ev = e.perception ? `<span class="chip">freeboard ${fmt(e.perception.freeboard_mm)} mm</span><span class="chip">P(&lt;lag) ${fmt(f.p_lag, 2)}</span>` : '';
+    const msg = e.msg ? `<div class="why">“${e.msg.message}” <span class="badge">${e.msg.by}</span></div>` : '';
+    li.innerHTML = `<span class="t">${fmt(e.t)}s</span><div><div class="d">${e.decision.replace(/_/g, ' ')}</div><div class="why">${e.why || ''}</div>${msg}<div>${ev}${tools}</div></div>`;
+    el.appendChild(li);
+  });
+}
+
+$('#simform').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const btn = $('#runbtn'); btn.disabled = true;
+  $('#simstatus').innerHTML = '<span class="spinner"></span>Heating… simulating 60 s and running the vision + agent loop (≈20–40 s)';
+  const body = { liquid: $('#liquid').value, heater: $('#heater').value, steam: +$('#steam').value,
+    overflow_prone: document.querySelector('input[name=ovf]:checked').value === '1',
+    cook: document.querySelector('input[name=cook]:checked').value, mode: $('#mode').value,
+    aws_mirror: $('#mirror').checked, privacy: $('#privacy').checked, bedrock: true };
+  if ($('#seed').value !== '') body.seed = +$('#seed').value;
+  try {
+    const r = await fetch('/api/simulate', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error((await r.json()).detail || r.statusText);
+    const d = await r.json();
+    const s = d.summary;
+    $('#simempty').hidden = true; $('#simout').hidden = false; $('#simdetails').hidden = false;
+    $('#simvideo').src = d.urls['annotated.mp4'];
+    const outcome = s.overflowed ? '<span class="bad">Boiled over</span>' : (s.will_overflow ? '<span class="good">Prevented</span>' : '<span class="good">No spill</span>');
+    $('#kpis').innerHTML = `
+      <div class="kpi"><div class="v">${outcome}</div><div class="l">outcome</div></div>
+      <div class="kpi"><div class="v">${s.natural_overflow_t ? fmt(s.natural_overflow_t, 0, ' s') : 'never'}</div><div class="l">spill time if nobody acts</div></div>
+      <div class="kpi"><div class="v">${fmt(s.first_alert_t, 1, ' s')}</div><div class="l">first alert</div></div>
+      <div class="kpi"><div class="v">${fmt(s.vision_ms_mean, 0, ' ms')}</div><div class="l">vision per frame</div></div>`;
+    drawChart(d.timeline, d.trace);
+    renderTrace($('#trace'), d.trace);
+    $('#report').textContent = d.report.text; $('#repby').textContent = d.report.by === 'bedrock' ? 'Amazon Bedrock' : 'template';
+    const p = d.params;
+    $('#params').innerHTML = `seed <code>${d.seed}</code> · ${p.liquid.replace('_', ' ')} · ${p.heater} hob · calm surface ${fmt(p.freeboard_mm, 0)} mm below rim (estimated ${fmt(s.D0_est, 0)}) · camera ${fmt(p.cam_height_mm, 0)} mm above rim · cook ${s.human_present ? 'nearby' : 'away'} · ran in ${fmt(d.elapsed_s, 1)} s`;
+    $('#simstatus').textContent = 'Done.';
+  } catch (e) { $('#simstatus').textContent = 'Error: ' + e.message; }
+  btn.disabled = false;
+});
+
+$('#clipform').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const f = $('#file').files[0]; if (!f) return;
+  const btn = $('#clipbtn'); btn.disabled = true;
+  $('#clipstatus').innerHTML = '<span class="spinner"></span>Uploading and analysing…';
+  const fd = new FormData(); fd.append('file', f); fd.append('cam_height_mm', $('#camh').value); fd.append('heater', $('#cheater').value);
+  try {
+    const r = await fetch('/api/analyze', { method: 'POST', body: fd });
+    if (!r.ok) throw new Error((await r.json()).detail || r.statusText);
+    const d = await r.json();
+    $('#clipempty').hidden = true; $('#clipout').hidden = false;
+    $('#clipvideo').src = d.urls['annotated.mp4'];
+    renderTrace($('#cliptrace'), d.trace);
+    $('#clipstatus').textContent = `Done in ${fmt(d.elapsed_s, 1)} s. Calm surface estimated ${fmt(d.summary.D0_est, 0)} mm below the rim.`;
+  } catch (e) { $('#clipstatus').textContent = 'Error: ' + e.message; }
+  btn.disabled = false;
+});
+
+let evalLoaded = false;
+async function loadEval() {
+  if (evalLoaded) return; evalLoaded = true;
+  try {
+    const m = await (await fetch('/api/eval')).json();
+    const rows = m.policies.map(p => `<tr><td>${p.label}</td><td class="num">${fmt(100 * p.overflow_rate, 0, '%')}</td><td class="num">${p.false_intervention_rate === null ? '—' : fmt(100 * p.false_intervention_rate, 0, '%')}</td><td class="num">${fmt(p.median_lead_s, 1, ' s')}</td></tr>`).join('');
+    $('#evalbody').innerHTML = `<p>${m.description}</p><table><thead><tr><th>Policy</th><th>Boil-overs (overflow-prone pots)</th><th>Unneeded heat cuts (clearly safe pots)</th><th>Median warning before spill</th></tr></thead><tbody>${rows}</tbody></table>
+      <p class="hint">Freeboard error ${fmt(m.perception.freeboard_mae_mm, 1)} mm MAE · rim found within 3 px in ${fmt(100 * m.perception.rim_ok_rate, 0)}% of scenes · vision ${fmt(m.compute.vision_ms_mean, 0)} ms/frame · ETA error at 10 s horizon ${fmt(m.forecast.mae_by_horizon['10'], 1)} s.</p>`;
+    $('#figs').innerHTML = (m.figures || []).map(f => `<img src="/results/${f.file}" alt="${f.alt}">`).join('');
+  } catch (e) { $('#evalbody').textContent = 'Evaluation results not bundled in this build.'; }
+}
+</script>
+</body>
+</html>

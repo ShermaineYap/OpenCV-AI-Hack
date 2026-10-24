@@ -1,0 +1,9 @@
+.git
+.github
+results/raw
+data
+docs
+tests
+eval
+**/__pycache__
+*.mp4
