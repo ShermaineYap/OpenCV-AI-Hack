@@ -6,7 +6,7 @@ heat *before* it spills — built on **OpenCV 5** and **AWS**.
 > OpenCV AI Competition 2026, powered by AWS · Overall + **Agentic Vision** path
 > Shermaine Yap Shi Min · Asia Pacific University of Technology and Innovation, Malaysia
 
-«LIVE_LINKS»
+**Live app:** _added after deployment_ · **Video:** _added after upload_ · **Report:** [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md) · Side-by-side demo: [docs/media/demo_side_by_side.mp4](docs/media/demo_side_by_side.mp4)
 
 ![BoilGuard demo](docs/media/demo.gif)
 
@@ -24,7 +24,25 @@ heat lag: alert → lower heat → verify from video → escalate if needed.
 
 ## Results (held-out simulated test set)
 
-«RESULTS»
+| Policy | Boil-overs (overflow-prone pots) | Unneeded heat cuts (clearly-safe pots) | Heat cuts on near-misses | Warnings on clearly-safe pots | Median warning before spill (s) |
+|---|---|---|---|---|---|
+| No system | 100% (95% CI 91-100%) | — | — | — | — |
+| Rim-threshold alarm + cook | 88% (95% CI 74-94%) | — | — | 50% | 3.3 |
+| Linear extrapolation, auto | 0% (95% CI 0-9%) | 7% | 83% | 7% | 4.7 |
+| BoilGuard, notify only + cook | 80% (95% CI 65-90%) | — | — | 36% | 4.5 |
+| BoilGuard, auto (cancel window) + cook | 0% (95% CI 0-9%) | 7% | 33% | 36% | 4.5 |
+| BoilGuard, auto, cook away | 0% (95% CI 0-9%) | 7% | 33% | 36% | 4.5 |
+
+Test set: 40 overflow-prone, 14 clearly-safe and 6 near-miss scenes (foam peaks at 70-100% of the rim). Heat cuts on near-misses are arguably correct caution.
+
+* BoilGuard in auto mode **prevented all 40 boil-overs** (cook nearby or away) with 1/14 unnecessary heat cuts.
+* **A warning alone fails**: with a cook reacting in ~6 s, 80-88% of pots still spill — heat lag + reaction time is too long. Hence an agent that acts.
+* Silent heads-up a median **8.3 s** before the spill; warning 4.5 s; forecast error 1.2 s at 5 s out.
+* Freeboard error median **3.1 mm**; rim found within 3 px in 57/60 scenes; **18.6 ms/frame** on one CPU core.
+
+![results](results/fig_outcomes.png)
+
+See the report for the forecast-error curve, failure cases and limitations.
 
 ## How it works
 

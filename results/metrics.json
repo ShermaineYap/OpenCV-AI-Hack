@@ -1,0 +1,319 @@
+{
+ "description": "60 held-out simulated scenes (seeds disjoint from the tuning set): 75% overflow-prone, 25% safe simmer; random liquid, hob type, steam, camera height/tilt, hands and spoons, camera shake and JPEG noise. The cook is nearby in ~60% of scenes (reaction time median 6 s). Same scenes and cooks for every policy.",
+ "policies": [
+  {
+   "policy": "none",
+   "label": "No system",
+   "median_heads_up_lead_s": null,
+   "n_overflow_prone": 40,
+   "n_safe": 14,
+   "n_near_miss": 6,
+   "overflow_rate": 1.0,
+   "false_intervention_rate": null,
+   "false_alert_rate": null,
+   "near_miss_intervention_rate": null,
+   "median_lead_s": null,
+   "overflow_ci95": [
+    0.912,
+    1
+   ]
+  },
+  {
+   "policy": "threshold_alarm",
+   "label": "Rim-threshold alarm + cook",
+   "median_heads_up_lead_s": null,
+   "n_overflow_prone": 40,
+   "n_safe": 14,
+   "n_near_miss": 6,
+   "overflow_rate": 0.875,
+   "false_intervention_rate": null,
+   "false_alert_rate": 0.5,
+   "near_miss_intervention_rate": null,
+   "median_lead_s": 3.330000000000215,
+   "overflow_ci95": [
+    0.739,
+    0.945
+   ]
+  },
+  {
+   "policy": "linear_auto",
+   "label": "Linear extrapolation, auto",
+   "median_heads_up_lead_s": null,
+   "n_overflow_prone": 40,
+   "n_safe": 14,
+   "n_near_miss": 6,
+   "overflow_rate": 0.0,
+   "false_intervention_rate": 0.07142857142857142,
+   "false_alert_rate": 0.07142857142857142,
+   "near_miss_intervention_rate": 0.8333333333333334,
+   "median_lead_s": 4.696666666666639,
+   "overflow_ci95": [
+    0,
+    0.088
+   ]
+  },
+  {
+   "policy": "boilguard_notify",
+   "label": "BoilGuard, notify only + cook",
+   "median_heads_up_lead_s": 7.5633333333333574,
+   "n_overflow_prone": 40,
+   "n_safe": 14,
+   "n_near_miss": 6,
+   "overflow_rate": 0.8,
+   "false_intervention_rate": null,
+   "false_alert_rate": 0.35714285714285715,
+   "near_miss_intervention_rate": null,
+   "median_lead_s": 4.530000000000111,
+   "overflow_ci95": [
+    0.652,
+    0.895
+   ]
+  },
+  {
+   "policy": "boilguard_auto",
+   "label": "BoilGuard, auto (cancel window) + cook",
+   "median_heads_up_lead_s": 8.26333333333326,
+   "n_overflow_prone": 40,
+   "n_safe": 14,
+   "n_near_miss": 6,
+   "overflow_rate": 0.0,
+   "false_intervention_rate": 0.07142857142857142,
+   "false_alert_rate": 0.35714285714285715,
+   "near_miss_intervention_rate": 0.3333333333333333,
+   "median_lead_s": 4.463333333333331,
+   "overflow_ci95": [
+    0,
+    0.088
+   ]
+  },
+  {
+   "policy": "boilguard_auto_absent",
+   "label": "BoilGuard, auto, cook away",
+   "median_heads_up_lead_s": 8.26333333333326,
+   "n_overflow_prone": 40,
+   "n_safe": 14,
+   "n_near_miss": 6,
+   "overflow_rate": 0.0,
+   "false_intervention_rate": 0.07142857142857142,
+   "false_alert_rate": 0.35714285714285715,
+   "near_miss_intervention_rate": 0.3333333333333333,
+   "median_lead_s": 4.463333333333331,
+   "overflow_ci95": [
+    0,
+    0.088
+   ]
+  }
+ ],
+ "forecast": {
+  "mae_by_horizon": {
+   "1": 0.6173522735399029,
+   "2": 0.7433805302546583,
+   "3": 0.8246283450016443,
+   "4": 0.9380105339813627,
+   "5": 1.2452893590766847,
+   "6": 1.3499440526292048,
+   "7": 1.8792759296203099,
+   "8": 2.820283732874931,
+   "9": 3.7453123507441926,
+   "10": 4.8416028225566325,
+   "11": 5.098379786263008,
+   "12": 6.908671268360886,
+   "13": 16.246331237746496,
+   "14": 20.353936779985027,
+   "15": 22.408651082058988,
+   "16": 25.769214775143162,
+   "17": 32.1820394934294,
+   "18": 26.596623104766955,
+   "19": 18.11775847756352,
+   "20": 30.946629669334577,
+   "21": 38.53,
+   "22": 25.788986189547668,
+   "23": 23.685987770526275,
+   "24": 35.730000000000004,
+   "25": 35.03,
+   "26": 33.730000000000004
+  },
+  "err_iqr_by_horizon": {
+   "1": [
+    0.46081863480532237,
+    0.8259110242867926
+   ],
+   "2": [
+    0.4702483056107512,
+    1.004800581727463
+   ],
+   "3": [
+    0.5980420827927536,
+    1.1962094441634523
+   ],
+   "4": [
+    0.556705634759409,
+    1.5235447399025923
+   ],
+   "5": [
+    0.7133553397471291,
+    1.7499148821845962
+   ],
+   "6": [
+    0.5958468493826528,
+    1.9402192377999203
+   ],
+   "7": [
+    0.7507830027728593,
+    3.4410218646834214
+   ],
+   "8": [
+    1.2967434767853616,
+    8.773708733223689
+   ],
+   "9": [
+    2.171403942857533,
+    10.684184223150748
+   ],
+   "10": [
+    2.8749232946340704,
+    18.805789357154133
+   ],
+   "11": [
+    2.965038747500598,
+    25.62103208398386
+   ],
+   "12": [
+    4.136480137917895,
+    47.53
+   ],
+   "13": [
+    4.3722007182421985,
+    46.6
+   ],
+   "14": [
+    5.180278557716955,
+    45.730000000000004
+   ],
+   "15": [
+    7.186090890443921,
+    44.730000000000004
+   ],
+   "16": [
+    11.30602158471254,
+    43.93
+   ],
+   "17": [
+    13.197589304568101,
+    43.0
+   ],
+   "18": [
+    8.666385036950725,
+    42.07
+   ],
+   "19": [
+    8.34455756570503,
+    40.67
+   ],
+   "20": [
+    11.049595500352103,
+    39.870000000000005
+   ],
+   "21": [
+    9.548645969785234,
+    38.93
+   ],
+   "22": [
+    11.40858225353072,
+    37.82000000000001
+   ],
+   "23": [
+    10.376222269263991,
+    36.730000000000004
+   ],
+   "24": [
+    30.12515909882169,
+    36.099999999999994
+   ],
+   "25": [
+    27.734901081934417,
+    35.285
+   ],
+   "26": [
+    33.53,
+    33.93
+   ]
+  },
+  "p10_is_early_rate": 0.9967417061611374
+ },
+ "perception": {
+  "freeboard_mae_mm": 4.005594745109239,
+  "freeboard_median_abs_mm": 3.1199999999999974,
+  "freeboard_bias_mm": -3.842724546622876,
+  "freeboard_p90_abs_mm": 6.465,
+  "by_steam": {
+   "light (<0.15)": 2.049999999999997,
+   "moderate (0.15-0.35)": 3.59,
+   "heavy (>0.35)": 3.0599999999999987
+  },
+  "by_steam_n": {
+   "light (<0.15)": 6047,
+   "moderate (0.15-0.35)": 4666,
+   "heavy (>0.35)": 3293
+  },
+  "by_liquid": {
+   "milk": 2.620000000000001,
+   "tomato_soup": 5.889999999999997,
+   "coconut_curry": 3.33,
+   "pasta_water": 2.049999999999997
+  },
+  "rim_center_err_px_median": 0.3879302304252166,
+  "rim_radius_err_px_median": 1.464656567040933,
+  "rim_ok_rate": 0.95,
+  "calm_freeboard_err_mm_median": 3.0649999999999995,
+  "n_scenes": 60
+ },
+ "compute": {
+  "vision_ms_mean": 18.640656306306308,
+  "vision_ms_p95": 25.13,
+  "adaptive_analysis_hz_mean": 3.968,
+  "fixed_rate_hz_baseline": 8.0
+ },
+ "failures": [
+  {
+   "policy": "boilguard_auto",
+   "seed": 516,
+   "kind": "unneeded heat cut",
+   "heater": "induction",
+   "liquid": "milk",
+   "steam": 0.74,
+   "rim_err_px": 1.5,
+   "first_action_t": 42.27,
+   "hmax_ratio": 0.677
+  },
+  {
+   "policy": "boilguard_auto_absent",
+   "seed": 516,
+   "kind": "unneeded heat cut",
+   "heater": "induction",
+   "liquid": "milk",
+   "steam": 0.74,
+   "rim_err_px": 1.5,
+   "first_action_t": 42.27,
+   "hmax_ratio": 0.677
+  }
+ ],
+ "figures": [
+  {
+   "file": "fig_outcomes.png",
+   "alt": "Bar charts: boil-over rate per policy and unneeded heat cuts"
+  },
+  {
+   "file": "fig_forecast_error.png",
+   "alt": "Forecast error shrinks as the boil-over approaches"
+  },
+  {
+   "file": "fig_perception.png",
+   "alt": "Freeboard error by steam level"
+  },
+  {
+   "file": "fig_example_timeline.png",
+   "alt": "Example run: measurement, forecast probability and actions"
+  }
+ ]
+}

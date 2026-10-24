@@ -68,7 +68,13 @@ an error alarm. GitHub Actions runs the tests, deploys and smoke-tests the live 
 also a closed-loop environment. Thresholds were tuned on a dev set and reported on a disjoint test
 set against baselines (no system, rim-threshold alarm, linear extrapolation).
 
-«RESULTS_SHORT»
+**Results (60 held-out simulated scenes):** with no system 100% of overflow-prone pots spill; a
+rim-threshold alarm with a cook nearby still lets 88% spill, and even BoilGuard's own warnings alone
+let 80% spill, because heat lag plus a 6-second human reaction is too slow. **BoilGuard acting
+automatically prevented all 40 boil-overs** (cook nearby or away), cut heat unnecessarily on 1 of 14
+safe pots, and gave a silent heads-up a median 8.3 s before the spill. Surface measurement error
+was 3.1 mm (median), the time-to-spill forecast was within 1.2 s at 5 s out, and vision takes
+18.6 ms per frame on one CPU core.
 
 ## Challenges I ran into
 
@@ -83,7 +89,11 @@ set against baselines (no system, rim-threshold alarm, linear extrapolation).
 
 ## Accomplishments that I'm proud of
 
-«ACCOMPLISHMENTS»
+* Millimetre-level surface measurement through steam, hands and camera shake with no training data.
+* A closed-loop evaluation showing *why* the agent must act: warnings alone failed 80-88% of the time.
+* 100% of boil-overs prevented on the held-out test set, with tuning done strictly on a separate dev set.
+* A one-click, self-testing AWS deployment with audit of every device command, and a public web app
+  anyone can try without a camera.
 
 ## What I learned
 

@@ -194,7 +194,7 @@ def figures(table, fc, perc, runs):
 
     # 1. outcomes: two panels, one measure each
     rows = [r for r in table if r["overflow_rate"] is not None]
-    fig, axes = plt.subplots(1, 2, figsize=(11, 3.8), gridspec_kw={"width_ratios": [1.25, 1]})
+    fig, axes = plt.subplots(1, 2, figsize=(12.5, 3.8), gridspec_kw={"width_ratios": [1.25, 1]})
     ax = axes[0]
     y = np.arange(len(rows))[::-1]
     vals = [100 * r["overflow_rate"] for r in rows]
@@ -224,7 +224,7 @@ def figures(table, fc, perc, runs):
         ax.set_yticks(y2, [r["label"] for r in act], fontsize=9, color=C["ink"])
         ax.set_xlim(0, 110)
         ax.set_xlabel("pots where heat was cut unnecessarily (%)")
-        ax.set_title(f"Unneeded heat cuts, clearly-safe pots (n={act[0]['n_safe']})", fontsize=11, loc="left")
+        ax.set_title(f"Unneeded heat cuts (safe pots, n={act[0]['n_safe']})", fontsize=11, loc="left")
         ax.xaxis.grid(True, color=C["grid"], linewidth=0.8)
         ax.set_axisbelow(True)
         _style(ax)
@@ -290,9 +290,9 @@ def figures(table, fc, perc, runs):
         a1.plot(t, [x["true_freeboard"] for x in tl], color=C["ink2"], linewidth=1.5, label="with BoilGuard (true)")
         a1.plot(t, [x["freeboard"] for x in tl], color=C["s1"], linewidth=2, label="BoilGuard measurement")
         a1.axhline(0, color=C["s2"], linewidth=1)
-        a1.text(t[0], 0.8, "rim", color=C["s2"], fontsize=9)
+        a1.text(t[-1], 0.8, "rim", color=C["s2"], fontsize=9, ha="right")
         a1.set_ylabel("surface below rim (mm)")
-        a1.legend(frameon=False, fontsize=8.5, labelcolor=C["ink"], loc="lower left")
+        a1.legend(frameon=False, fontsize=8.5, labelcolor=C["ink"], loc="lower right", bbox_to_anchor=(1.0, 0.06))
         a1.set_title(f"Closed loop, cook away (test seed {ex['params']['seed']}, {ex['summary']['liquid'].replace('_', ' ')}, "
                      f"{ex['summary']['heater']} hob)", fontsize=11, loc="left")
         a2.plot(t, [x["plag"] for x in tl], color=C["s1"], linewidth=2)

@@ -55,13 +55,17 @@ verifies from video, escalates if needed, and when steam hides the rim it switch
 hood fan on to see better. The cook stays in control with three autonomy modes."
 
 **3:15-4:30 · Results (fig_outcomes.png, fig_example_timeline.png, fig_forecast_error.png)**
-Read the headline numbers from `results/eval_table.md`, e.g.
-"On 60 held-out scenes, with no system 100% of the overflow-prone pots spill; a
-rim-threshold alarm with a cook nearby still lets most spill; BoilGuard in auto mode
-prevents …%, even with the cook away, at … unneeded heat cuts on clearly-safe pots."
-Then: "Failure cases: …" (pick one from `metrics.json > failures`: e.g. heavy steam,
-a tilted pot where the rim was mis-detected). "These are simulated scenes; the next
-step is a real-stove study."
+"I evaluated on 60 held-out simulated scenes, tuned only on a separate dev set. With
+no system, all 40 overflow-prone pots spill. A rim-threshold alarm with a cook nearby
+still lets 88% spill, and even BoilGuard's own warnings alone let 80% spill, because
+the stove's heat lag plus a six-second human reaction is simply too slow. That's why the
+agent acts: in auto mode BoilGuard prevented all 40 boil-overs, with the cook nearby or
+away, and cut the heat unnecessarily on one of fourteen safe pots. It gives a quiet
+heads-up about eight seconds before the spill, measures the surface to about 3 mm, and
+runs in under 20 ms per frame on one CPU core.
+Honest failure cases: on dark tomato soup the rim was mistaken for the liquid edge in
+3 of 60 scenes, and soup accuracy is about half as good as milk. All numbers are from
+simulation; the next step is a real-stove study."
 
 **4:30-5:00 · Responsible use + close**
 "Only the pot region is analysed, a privacy mask can blur everything else, prompts to
