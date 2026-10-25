@@ -2,7 +2,7 @@
 import json, subprocess, os, numpy as np, wave
 HERE = os.path.dirname(os.path.abspath(__file__))
 os.chdir(HERE)
-ORDER = ["brag", "team", "problem", "lag", "idea", "demo1", "demo2", "demo3",
+ORDER = ["brag", "team", "problem", "lag", "idea", "demo1", "live", "demo3",
          "vision", "predict", "aws", "results", "limits", "responsible", "close"]
 LEAD = 0.35
 def dur(p): return float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", p]))
