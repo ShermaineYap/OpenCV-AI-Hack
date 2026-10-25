@@ -9,3 +9,5 @@ runs/
 samconfig.toml
 .env
 brag-output/work/
+video/work/
+video/*.mp4
