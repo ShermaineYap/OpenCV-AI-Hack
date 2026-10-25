@@ -1,0 +1,1 @@
+Milk boils over in the seconds you look away, and your stove keeps heating after you turn the knob. BoilGuard watches the pot with OpenCV 5, forecasts the spill and turns the heat down before it happens: 40/40 boil-overs prevented on our held-out simulated test set. #OpenCVComp26 github.com/ShermaineYap/OpenCV-AI-Hack

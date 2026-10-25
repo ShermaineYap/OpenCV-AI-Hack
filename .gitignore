@@ -8,3 +8,4 @@ runs/
 .aws-sam/
 samconfig.toml
 .env
+brag-output/work/
