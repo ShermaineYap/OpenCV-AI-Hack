@@ -6,6 +6,7 @@ REGION="${1:-us-east-1}"
 EMAIL="${2:-}"
 STACK="${STACK:-boilguard}"
 cd "$(dirname "$0")/.."
+aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws || true
 sam build --template-file aws/template.yaml
 OVR="EnableBedrock=1"; [ -n "$EMAIL" ] && OVR="$OVR AlertEmail=$EMAIL"
 sam deploy --stack-name "$STACK" --region "$REGION" --resolve-s3 --resolve-image-repos \

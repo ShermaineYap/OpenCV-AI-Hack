@@ -29,8 +29,19 @@ jobs:
           aws-region: ${{ inputs.region }}
       - name: Unit tests
         run: pip install -r requirements-dev.txt && pytest -q
+      - name: Log in to Amazon ECR Public (authenticated pulls avoid anonymous rate limits)
+        run: |
+          aws ecr-public get-login-password --region us-east-1 \
+            | docker login --username AWS --password-stdin public.ecr.aws
       - name: Build container image
-        run: sam build --template-file aws/template.yaml
+        env:
+          SAM_CLI_TELEMETRY: "0"
+        run: |
+          for i in 1 2 3; do
+            sam build --template-file aws/template.yaml && exit 0
+            echo "build attempt $i failed, retrying in 30 s"; sleep 30
+          done
+          exit 1
       - name: Deploy stack
         run: |
           OVERRIDES="EnableBedrock=1"
