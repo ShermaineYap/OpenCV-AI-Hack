@@ -10,7 +10,7 @@ video analysis and run a meaningful component on AWS.
 | Pinned dependencies + build, deployment and test instructions | `requirements*.txt`, `Dockerfile`, `README.md`, CI workflow | ✅ |
 | Architecture diagram (OpenCV 5 + AWS components, agent components) | `docs/architecture.png`, `docs/agent_workflow.png` | ✅ |
 | Working web endpoint (or live screen-share) | https://5a25kqeayc5ki2btob2zvzuhhq0gocaz.lambda-url.us-east-1.on.aws/ | ✅ deployed 25 Oct |
-| Video ≤ 5 min showing team, app working, architecture, results | https://youtu.be/Amshg0SkqNw (unlisted, 3:56) | ✅ |
+| Video ≤ 5 min showing team, app working, architecture, results | https://youtu.be/W7mly80gPgo (unlisted, 4:04) | ✅ |
 | Evaluation evidence incl. failure cases / limitations | `results/` + report §8-9 | ✅ |
 | Agentic Vision award: workflow diagram, trace showing OpenCV output changing actions, evaluation of task success / failure handling / human control | `docs/agent_workflow.png`, trace in web app + `results/raw`, report §6 and §8 | ✅ (tick the award on Devpost) |
 
