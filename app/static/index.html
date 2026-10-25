@@ -291,7 +291,7 @@ function renderTrace(el, trace) {
 $('#simform').addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const btn = $('#runbtn'); btn.disabled = true;
-  $('#simstatus').innerHTML = '<span class="spinner"></span>Heating… simulating 60 s and running the vision + agent loop (≈20–40 s)';
+  $('#simstatus').innerHTML = '<span class="spinner"></span>Heating… simulating 60 s and running the vision + agent loop (about 1 minute)';
   const body = { liquid: $('#liquid').value, heater: $('#heater').value, steam: +$('#steam').value,
     overflow_prone: document.querySelector('input[name=ovf]:checked').value === '1',
     cook: document.querySelector('input[name=cook]:checked').value, mode: $('#mode').value,

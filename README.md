@@ -6,7 +6,7 @@ heat *before* it spills — built on **OpenCV 5** and **AWS**.
 > OpenCV AI Competition 2026, powered by AWS · Overall + **Agentic Vision** path
 > Shermaine Yap Shi Min · Asia Pacific University of Technology and Innovation, Malaysia
 
-**Live app:** _added after deployment_ · **Video:** _added after upload_ · **Report:** [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md) · Side-by-side demo: [docs/media/demo_side_by_side.mp4](docs/media/demo_side_by_side.mp4)
+**Live app:** https://5a25kqeayc5ki2btob2zvzuhhq0gocaz.lambda-url.us-east-1.on.aws/ · **Video:** _added after upload_ · **Report:** [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md) · Side-by-side demo: [docs/media/demo_side_by_side.mp4](docs/media/demo_side_by_side.mp4)
 
 ![BoilGuard demo](docs/media/demo.gif)
 

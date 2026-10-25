@@ -5,7 +5,7 @@
 
 **Built with:** opencv, python, numpy, fastapi, aws-lambda, aws-iot-core, amazon-bedrock, amazon-nova, amazon-s3, amazon-sns, amazon-cloudwatch, aws-sam, aws-cloudformation, amazon-ecr, docker, github-actions, kalman-filter
 
-**Links:** App URL «APP_URL» · Code https://github.com/ShermaineYap/opencv-ai-hack · Video «VIDEO_URL»
+**Links:** App URL https://5a25kqeayc5ki2btob2zvzuhhq0gocaz.lambda-url.us-east-1.on.aws/ · Code https://github.com/ShermaineYap/opencv-ai-hack · Video «VIDEO_URL»
 
 **Special awards:** opt in to **Agentic Vision Award**.
 
